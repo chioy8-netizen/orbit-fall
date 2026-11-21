@@ -356,6 +356,38 @@ aside .module .label,aside .stats .label,.module button span,.stats strong{color
 .settings select{max-width:43%;cursor:pointer}
 .controls button[data-pressed]{transform:translateY(4px) scale(.975);box-shadow:inset 0 2px 4px #7b48472b}
 @media(prefers-reduced-motion:reduce){.controls button[data-pressed]{transform:none}}
+
+.deck{bottom:calc(19.28% + 55px)}
+.screen canvas{inset:5.2% auto auto 50%;height:90.6%;width:auto;aspect-ratio:1/2;transform:translateX(-50%);max-width:88%}
+.controls{grid-template-columns:repeat(4,minmax(0,1fr))}
+.soft-row{position:absolute;top:calc(80.72% - 54px);left:3.85%;right:3.52%;height:48px}
+.soft-row .soft-drop{
+  position:absolute;left:calc(var(--soft-position,1) * 76%);width:24%;min-width:48px;height:48px;min-height:48px;padding:0;
+  border-radius:14px;box-shadow:inset 0 0 0 3px #fff4df90,0 3px #be936a
+}
+.soft-row .soft-drop[data-pressed]{transform:translateY(3px);box-shadow:inset 0 2px 4px #7b48472b}
+.settings #edit-layout,.layout-actions button{
+  min-height:32px;padding:0 7px;border:1px solid #bf896a;border-radius:8px;
+  color:#653d3b;background:#fff1dc;font:700 clamp(10px,3cqw,13px)/1 system-ui;box-shadow:0 1px #bd917a
+}
+#layout-dialog{
+  width:min(92vw,392px);color:#623840;background:#fff1dc;border:2px solid #c68c76;
+  border-radius:18px;padding:14px;box-shadow:0 12px 36px #3d233760
+}
+#layout-dialog::backdrop{background:#3a243ba8}
+#layout-dialog h2{margin:0 0 6px;font-size:19px}
+#layout-dialog p{margin:0 0 12px;font-size:13px}
+#editor-soft{display:grid;grid-template-columns:auto minmax(60px,1fr);gap:10px;align-items:center;font-size:13px;font-weight:700;margin-bottom:10px}
+#soft-position{width:100%;accent-color:#a65361}
+#editor-keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+#editor-keys button{
+  min-height:48px;background:#f3ccb5;color:#673d3b;font-size:13px;border:1px solid #bb846d;
+  touch-action:none;cursor:grab;box-shadow:0 2px #bc8372
+}
+#editor-keys button[data-dragging]{opacity:.65;cursor:grabbing}
+.layout-actions{display:flex;justify-content:space-between;gap:6px;margin-top:14px}
+.layout-actions button{min-height:40px;padding:0 11px;font-size:13px}
+.layout-actions button[value=save]{background:#a65361;color:#fff4e4;border-color:#8c3b51}
 </style>
 <main>
 <header><div><h1>The Jolly Bean Café</h1><span class="mascot" aria-hidden="true"></span></div></header>
@@ -367,18 +399,27 @@ aside .module .label,aside .stats .label,.module button span,.stats strong{color
 <div class="module"><button data-act="hold" aria-label="暂存或交换方块"><canvas id="held" width="96" height="72"></canvas><span>暂存</span></button></div>
 
 </aside></div>
-<div class="controls" aria-label="游戏操作"><button data-act="left"><span aria-hidden="true">◀</span><small>左移</small></button><button data-act="right"><span aria-hidden="true">▶</span><small>右移</small></button><button data-act="turn"><span aria-hidden="true">⟳</span><small>旋转</small></button><button class="soft-drop" data-act="down"><span aria-hidden="true"><i class="chevrons"></i></span><small>软降</small></button><button class="drop" data-act="drop"><span aria-hidden="true">↓</span><small>速降</small></button></div>
+<div class="soft-row"><button class="soft-drop" data-act="down"><span aria-hidden="true"><i class="chevrons"></i></span><small>软降</small></button></div>
+<div class="controls" aria-label="游戏操作"><button data-act="left"><span aria-hidden="true">◀</span><small>左移</small></button><button data-act="right"><span aria-hidden="true">▶</span><small>右移</small></button><button data-act="turn"><span aria-hidden="true">⟳</span><small>旋转</small></button><button class="drop" data-act="drop"><span aria-hidden="true">↓</span><small>速降</small></button></div>
 <p class="hint">轻点旋转 · 横拖移动 · 下拖软降 · 快速下甩速降<br>键盘方向键 · 空格速降 · C 暂存 · P 暂停</p>
 <div class="settings" aria-label="游戏设置">
-<select id="key-layout" aria-label="按键布局">
-<option value="standard">布局：标准</option>
-<option value="soft-left">布局：软降靠左</option>
-<option value="moves-right">布局：方向靠右</option>
-</select>
+<button id="edit-layout" type="button">自定义布局</button>
 <button id="sound" type="button" aria-pressed="true">音效：开</button>
 <button id="music" type="button" aria-pressed="false">圣诞音乐：关</button>
 </div>
 </main>
+<dialog id="layout-dialog" aria-labelledby="layout-title">
+ <form method="dialog">
+  <h2 id="layout-title">自定义按键</h2>
+  <p>拖动下方四个键换位，或聚焦后用方向键调整顺序。</p>
+  <label id="editor-soft">软降位置 <input id="soft-position" type="range" min="0" max="100" step="1" aria-label="软降位置，从左到右"></label>
+  <div id="editor-keys" aria-label="四个主键的排列"></div>
+  <div class="layout-actions">
+   <button id="reset-layout" type="button">恢复默认</button>
+   <button value="cancel">取消</button><button value="save">保存</button>
+  </div>
+ </form>
+</dialog>
 <script>
 const el = id => document.getElementById(id);
 const colors = ['#a8e1df','#ffda95','#e0b4e4','#c1dfaa','#f5a5b1','#b9caf4','#ffc3a1'];
@@ -775,24 +816,93 @@ function pause() {
 el('play').onclick=start;
 el('pause').onclick=pause;
 document.addEventListener('visibilitychange',()=>{if(document.hidden && state==='playing') show('paused')});
-const placements={
-  standard:['left','right','turn','down','drop'],
-  'soft-left':['down','left','right','turn','drop'],
-  'moves-right':['turn','drop','down','left','right']
-};
-const controls=document.querySelector('.controls');
-const keys=Object.fromEntries([...controls.querySelectorAll('[data-act]')].map(button=>[button.dataset.act,button]));
-const layout=el('key-layout');
+const defaultOrder=['left','right','turn','drop'];
+const controls=document.querySelector('.controls'), softRow=document.querySelector('.soft-row');
+const keys=Object.fromEntries([...document.querySelectorAll('[data-act]')].map(button=>[button.dataset.act,button]));
+const editor=el('layout-dialog'), editorKeys=el('editor-keys'), position=el('soft-position');
+const layoutKey='orbit-coffee-custom-layout';
+let order=[...defaultOrder], softPosition=100, draftOrder, drag;
 try {
-  const saved=localStorage.getItem('orbit-coffee-layout');
-  if(Object.hasOwn(placements,saved)) layout.value=saved;
+  const saved=JSON.parse(localStorage.getItem(layoutKey));
+  if(saved && Array.isArray(saved.order) && saved.order.length===4 &&
+    defaultOrder.every(action=>saved.order.includes(action)) &&
+    Number.isFinite(saved.softPosition) && saved.softPosition>=0 && saved.softPosition<=100) {
+    order=saved.order;
+    softPosition=saved.softPosition;
+  }
 } catch {}
-function arrangeKeys() {
-  controls.append(...placements[layout.value].map(action=>keys[action]));
-  try { localStorage.setItem('orbit-coffee-layout',layout.value); } catch {}
+function applyLayout() {
+  controls.append(...order.map(action=>keys[action]));
+  softRow.style.setProperty('--soft-position',softPosition/100);
 }
-layout.addEventListener('change',arrangeKeys);
-arrangeKeys();
+function moveDraft(action,target) {
+  const from=draftOrder.indexOf(action);
+  if(from===target || target<0 || target>=draftOrder.length) return;
+  draftOrder.splice(from,1);
+  draftOrder.splice(target,0,action);
+  renderEditor(action);
+}
+function renderEditor(focusAction) {
+  editorKeys.replaceChildren(...draftOrder.map((action,index)=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.dataset.key=action;
+    button.textContent=keys[action].querySelector('small').textContent;
+    button.setAttribute('aria-label',button.textContent+'，第 '+(index+1)+' 个');
+    button.onkeydown=e=>{
+      if(e.key!=='ArrowLeft' && e.key!=='ArrowRight') return;
+      e.preventDefault();
+      moveDraft(action,index+(e.key==='ArrowLeft'?-1:1));
+    };
+    button.onpointerdown=e=>{
+      if(e.button!==0||drag) return;
+      button.setPointerCapture(e.pointerId);
+      drag={id:e.pointerId,action};
+      button.dataset.dragging='';
+    };
+    button.onpointerup=e=>{
+      if(drag?.id!==e.pointerId) return;
+      delete button.dataset.dragging;
+      drag=undefined;
+      const distances=[...editorKeys.children].map(key=>{
+        const box=key.getBoundingClientRect();
+        return Math.abs(e.clientX-box.left-box.width/2);
+      });
+      moveDraft(action,distances.indexOf(Math.min(...distances)));
+    };
+    const cancelDrag=e=>{
+      if(drag?.id!==e.pointerId) return;
+      drag=undefined;
+      delete button.dataset.dragging;
+    };
+    button.onpointercancel=cancelDrag;
+    button.onlostpointercapture=cancelDrag;
+    return button;
+  }));
+  if(focusAction) editorKeys.querySelector('[data-key="'+focusAction+'"]')?.focus();
+}
+el('edit-layout').onclick=()=>{
+  if(state==='playing') show('paused');
+  draftOrder=[...order];
+  position.value=softPosition;
+  editor.returnValue='';
+  renderEditor();
+  editor.showModal();
+};
+el('reset-layout').onclick=()=>{
+  draftOrder=[...defaultOrder];
+  position.value=100;
+  renderEditor();
+};
+editor.addEventListener('close',()=>{
+  drag=undefined;
+  if(editor.returnValue!=='save') return;
+  order=draftOrder;
+  softPosition=Number(position.value);
+  applyLayout();
+  try { localStorage.setItem(layoutKey,JSON.stringify({order,softPosition})); } catch {}
+});
+applyLayout();
 
 const repeatable=new Set(['left','right','down']);
 const heldInputs=new Map();
@@ -823,10 +933,10 @@ function pressInput(id,action,button) {
 window.addEventListener('blur',releaseAllInputs);
 document.addEventListener('visibilitychange',()=>{if(document.hidden) releaseAllInputs()});
 document.addEventListener('keydown',e=>{
-  if(e.target instanceof HTMLSelectElement) return;
+  if(editor.open) return;
   if(e.code==='KeyP'||e.code==='Escape'){if(!e.repeat) pause();return}
   if(e.code==='Space' && e.target instanceof HTMLButtonElement &&
-    (state!=='playing'||['sound','music','pause'].includes(e.target.id))) return;
+    (state!=='playing'||['sound','music','pause','edit-layout','play'].includes(e.target.id))) return;
   const action={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'turn',ArrowDown:'down',Space:'drop',KeyC:'hold'}[e.code];
   if(!action||state!=='playing') return;
   e.preventDefault();
