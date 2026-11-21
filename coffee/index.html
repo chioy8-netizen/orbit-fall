@@ -357,12 +357,14 @@ aside .module .label,aside .stats .label,.module button span,.stats strong{color
 .controls button[data-pressed]{transform:translateY(4px) scale(.975);box-shadow:inset 0 2px 4px #7b48472b}
 @media(prefers-reduced-motion:reduce){.controls button[data-pressed]{transform:none}}
 
-.deck{bottom:calc(19.28% + 55px)}
-.screen canvas{inset:5.2% auto auto 50%;height:90.6%;width:auto;aspect-ratio:1/2;transform:translateX(-50%);max-width:88%}
 .controls{grid-template-columns:repeat(4,minmax(0,1fr))}
-.soft-row{position:absolute;top:calc(80.72% - 54px);left:3.85%;right:3.52%;height:48px}
+.deck aside{grid-template-rows:84fr 246fr 326fr 220fr;bottom:18.7%}
+.soft-row{
+  position:absolute;left:70.3%;right:4.1%;top:65%;bottom:24%;height:auto;
+  pointer-events:none
+}
 .soft-row .soft-drop{
-  position:absolute;left:calc(var(--soft-position,1) * 76%);width:24%;min-width:48px;height:48px;min-height:48px;padding:0;
+  position:absolute;left:0;top:calc((100% - 48px) * var(--soft-position,1));width:100%;min-width:48px;height:48px;min-height:48px;padding:0;pointer-events:auto;
   border-radius:14px;box-shadow:inset 0 0 0 3px #fff4df90,0 3px #be936a
 }
 .soft-row .soft-drop[data-pressed]{transform:translateY(3px);box-shadow:inset 0 2px 4px #7b48472b}
@@ -412,7 +414,7 @@ aside .module .label,aside .stats .label,.module button span,.stats strong{color
  <form method="dialog">
   <h2 id="layout-title">自定义按键</h2>
   <p>拖动下方四个键换位，或聚焦后用方向键调整顺序。</p>
-  <label id="editor-soft">软降位置 <input id="soft-position" type="range" min="0" max="100" step="1" aria-label="软降位置，从左到右"></label>
+  <label id="editor-soft">软降高度 <input id="soft-position" type="range" min="0" max="100" step="1" aria-label="软降位置，从上到下"></label>
   <div id="editor-keys" aria-label="四个主键的排列"></div>
   <div class="layout-actions">
    <button id="reset-layout" type="button">恢复默认</button>
@@ -821,6 +823,7 @@ const controls=document.querySelector('.controls'), softRow=document.querySelect
 const keys=Object.fromEntries([...document.querySelectorAll('[data-act]')].map(button=>[button.dataset.act,button]));
 const editor=el('layout-dialog'), editorKeys=el('editor-keys'), position=el('soft-position');
 const layoutKey='orbit-coffee-custom-layout';
+const softPlacementKey='orbit-coffee-soft-height';
 let order=[...defaultOrder], softPosition=100, draftOrder, drag;
 try {
   const saved=JSON.parse(localStorage.getItem(layoutKey));
@@ -828,7 +831,7 @@ try {
     defaultOrder.every(action=>saved.order.includes(action)) &&
     Number.isFinite(saved.softPosition) && saved.softPosition>=0 && saved.softPosition<=100) {
     order=saved.order;
-    softPosition=saved.softPosition;
+    if(localStorage.getItem(softPlacementKey)==='1') softPosition=saved.softPosition;
   }
 } catch {}
 function applyLayout() {
@@ -900,7 +903,7 @@ editor.addEventListener('close',()=>{
   order=draftOrder;
   softPosition=Number(position.value);
   applyLayout();
-  try { localStorage.setItem(layoutKey,JSON.stringify({order,softPosition})); } catch {}
+  try { localStorage.setItem(layoutKey,JSON.stringify({order,softPosition}));localStorage.setItem(softPlacementKey,'1'); } catch {}
 });
 applyLayout();
 
